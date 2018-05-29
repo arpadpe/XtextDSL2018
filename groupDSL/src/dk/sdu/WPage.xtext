@@ -63,11 +63,23 @@ AdvancedType:
 ;
 
 Input returns AdvacedType:
-	{Input} 'input' ('label' label=STRING)? 'var' variable=Name ('cons' constraint=Constraint)?
+	{Input} 'input' ('label' label=STRING)? 'to' variable=Name ('cons' constraint=Constraint)?
 ;
 
 Constraint:
-	 {Constraint} ('number' | 'email' | 'bool' | ('reg' regex=STRING))
+	 NumberCons | EmailCons | BoolCons
+;
+
+NumberCons returns Constraint:
+	{NumberCons} 'number'
+;
+
+EmailCons returns Constraint:
+	{EmailCons} 'email'
+;
+
+BoolCons returns Constraint:
+	{BoolCons} 'bool'
 ;
 
 View returns AdvancedType: 

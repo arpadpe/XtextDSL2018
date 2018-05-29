@@ -60,6 +60,9 @@ import dk.sdu.wPage.LogParenthesis
 import dk.sdu.wPage.ExpParenthesis
 import dk.sdu.wPage.Input
 import dk.sdu.wPage.Expression
+import dk.sdu.wPage.NumberCons
+import dk.sdu.wPage.EmailCons
+import dk.sdu.wPage.BoolCons
 
 /**
  * Generates code from your model files on save.
@@ -185,7 +188,6 @@ class WPageGenerator extends AbstractGenerator {
 	def generateAddInputVariableToModel(String string) {
 		dependantVariables.add(string)
 		var value = inputVariables.get(string)
-		var a = mapOfVariables.get(string)
 		if(null !== mapOfVariables.get(string) && mapOfVariables.get(string).value instanceof Number) {
 			var valueContents = value.toString().split(' ')
 			var contains = false
@@ -243,13 +245,22 @@ class WPageGenerator extends AbstractGenerator {
 	'''
 	
 	def dispatch generateAdvancedType(Input input) {
-	'''
-	<div>«IF null !== input.label»
-		«input.label»
-		«ENDIF»
-		<input data-bind="value: «input.variable.value.name»"/>
-	</div>
-	'''
+		var constraint = ''
+		val inputCons = input.constraint
+		if(null !== inputCons) {
+			switch inputCons {
+				NumberCons: constraint = '[0-9]+'
+				EmailCons: constraint = '.+@[a-z]+\\.[a-z]+'
+				BoolCons: constraint = '([tT]rue|[fF]alse)'
+			}
+		}
+		return '''
+		<div>«IF null !== input.label»
+			«input.label»
+			«ENDIF»
+			<input data-bind="value: «input.variable.value.name»" «IF '' !== constraint»pattern=\"«constraint»"«ENDIF»/>
+		</div>
+		'''
 	}
 	
 	def dispatch generateViewContent(Image image) '''«image.generateImage»'''

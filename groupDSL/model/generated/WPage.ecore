@@ -37,9 +37,7 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="AdvancedType"/>
   <eClassifiers xsi:type="ecore:EClass" name="AdvacedType" eSuperTypes="#//AdvancedType"/>
-  <eClassifiers xsi:type="ecore:EClass" name="Constraint">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="regex" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Constraint"/>
   <eClassifiers xsi:type="ecore:EClass" name="DisplayConfiguration" eSuperTypes="#//ButtonContent #//ViewContent #//TableContent"/>
   <eClassifiers xsi:type="ecore:EClass" name="ViewConfiguration" eSuperTypes="#//DisplayConfiguration"/>
   <eClassifiers xsi:type="ecore:EClass" name="DimensionValue">
@@ -152,6 +150,9 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="constraint" eType="#//Constraint"
         containment="true"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NumberCons" eSuperTypes="#//Constraint"/>
+  <eClassifiers xsi:type="ecore:EClass" name="EmailCons" eSuperTypes="#//Constraint"/>
+  <eClassifiers xsi:type="ecore:EClass" name="BoolCons" eSuperTypes="#//Constraint"/>
   <eClassifiers xsi:type="ecore:EClass" name="View" eSuperTypes="#//AdvancedType">
     <eStructuralFeatures xsi:type="ecore:EReference" name="contents" upperBound="-1"
         eType="#//ViewContent" containment="true"/>
