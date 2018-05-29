@@ -3,6 +3,14 @@
  */
 package dk.sdu.scoping
 
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
+import dk.sdu.wPage.WPagePackage.Literals
+import org.eclipse.xtext.scoping.Scopes
+import org.eclipse.xtext.EcoreUtil2
+import dk.sdu.wPage.Name
+import dk.sdu.wPage.Page
+import dk.sdu.wPage.Variable
 
 /**
  * This class contains custom scoping description.
@@ -11,5 +19,16 @@ package dk.sdu.scoping
  * on how and when to use it.
  */
 class WPageScopeProvider extends AbstractWPageScopeProvider {
+
+	override getScope(EObject context, EReference reference) {
+		if (context instanceof Name && reference == Literals.NAME__VALUE) {
+			val container = EcoreUtil2.getContainerOfType(context, Page)
+			val elements = EcoreUtil2.getAllContentsOfType(container, Variable)
+			
+			return Scopes.scopeFor(elements)
+		}
+		
+		super.getScope(context, reference)
+	}
 
 }

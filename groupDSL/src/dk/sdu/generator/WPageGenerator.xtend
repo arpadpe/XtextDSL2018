@@ -58,6 +58,8 @@ import dk.sdu.wPage.LayoutContent
 import dk.sdu.wPage.Index
 import dk.sdu.wPage.LogParenthesis
 import dk.sdu.wPage.ExpParenthesis
+import dk.sdu.wPage.Input
+import dk.sdu.wPage.Expression
 
 /**
  * Generates code from your model files on save.
@@ -73,6 +75,8 @@ class WPageGenerator extends AbstractGenerator {
 	
 	private var List<String> pageNames = new ArrayList;
 	private val Map<String,Variable> mapOfVariables = new HashMap
+	private val Map<String,CharSequence> inputVariables = new HashMap
+	private val List<String> dependantVariables = new ArrayList
 	private var int currentIndex = 0;
 	
 	def generateHtmlPageFile(Page page, IFileSystemAccess2 fsa) {
@@ -95,22 +99,54 @@ class WPageGenerator extends AbstractGenerator {
 	
 	def generateVars(Page page){
 		val vars = page.pagecontents.filter(Variable)
-		vars.forEach[mapOfVariables.put(it.name,it)]
+		vars.forEach[mapOfVariables.put(it.name, it)]
 		val simple = vars.filter[!(it.value instanceof AdvancedType)]
-		simple.join("")[ "var " + it.name + " = " +  it.getVariable +";"] + " var _current = " + pageNames.indexOf(page.name) +";"
+		simple.join("")[it.generateJavaScriptVariable] + " var _current = " + pageNames.indexOf(page.name) +";"
+	}
+	
+	def CharSequence generateJavaScriptVariable(Variable variable) {
+		mapOfVariables.put(variable.name, variable)
+		inputVariables.put(variable.name, variable.computeVariableValueAsString)
+		if (variable.value instanceof Text)
+	 		return "var " + variable.name + " = \"" +  variable.getVariable +"\";"
+	 	return "var " + variable.name + " = " +  variable.getVariable +";"
 	}
 	
 	def double getVariableFromMap(Name name){
-		mapOfVariables.get(name.name.name).value.computeValue 
+		mapOfVariables.get(name.value.name).value.computeValue
 	}
 	
 	def CharSequence getVariable(Variable variable) '''«if(variable.value instanceof AdvancedType) (variable.value as AdvancedType).generateAdvancedType else (variable.value as Type).simpleVar»'''
 	
-	def dispatch simpleVar(Text text) ''''«text.value.generateTextValue+"'"»'''
-	def dispatch simpleVar(Boolean text) '''«text.value.toLowerCase»'''
-	def dispatch simpleVar(Number text) '''«text.computeValue»'''
+	def dispatch simpleVar(Text text) {
+		val textString = newArrayList()
+		for(value:text.values) {
+			textString.add(value.generateTextValue)
+		}
+		textString.join(" ")
+	}
+	def dispatch simpleVar(Boolean bool) '''«bool.value.toLowerCase»'''
+	def dispatch simpleVar(Number num) '''«num.value.generateExpression»'''
 	
-	def generateTextValue(TextValue textValue) '''«IF null !== textValue.string»«textValue.string»«ELSEIF null !== textValue.variable»«(mapOfVariables.get(textValue.variable.name).value as Text).value.string»«ENDIF»'''
+	def CharSequence generateTextValue(TextValue textValue) {
+		if (null !== textValue.string) {
+			return textValue.string
+		} else if (null !== textValue.variable) {
+			return "<span data-bind='text: " + textValue.variable.value.name + "'></span>"
+		}
+		return ''
+	}
+	
+	def computeVariableValueAsString(Variable variable) {
+		var current = mapOfVariables.get(variable.name).value
+		var returnString = ''
+		switch current {
+			Text: returnString = "\"" + current.simpleVar.toString + "\""
+			Type: returnString = current.simpleVar.toString
+			default: returnString = ''
+		}
+		return returnString
+	}
 	
 	def int mod(int number, int modulo){
 		(number % modulo + modulo) % modulo
@@ -120,9 +156,11 @@ class WPageGenerator extends AbstractGenerator {
 	<html>
 		<head>
 			«IF page.pagecontents.exists[it instanceof Title]»
-				<title>«page.pagecontents.filter(Title).get(0).value»</title>  «««Only one can exists
+				<title>«page.pagecontents.filter(Title).get(0).value.generateTextValue»</title>  «««Only one can exists
 			«ENDIF»
+			<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-debug.js'></script>
 			<script>
+				var variables = {}
 				«page.generateNavigationMethods»
 				«page.generateVars»
 			</script>
@@ -133,8 +171,44 @@ class WPageGenerator extends AbstractGenerator {
 			«p.generatePageBodyContent»
 		«ENDFOR»
 		</body>
+		<script type="text/javascript">
+			var ViewModel = function() {
+				«FOR iv:inputVariables.keySet»
+				«iv.generateAddInputVariableToModel»
+				«ENDFOR»
+			}
+			ko.applyBindings(new ViewModel());
+		</script>
 	</html>	
 	'''
+	
+	def generateAddInputVariableToModel(String string) {
+		dependantVariables.add(string)
+		var value = inputVariables.get(string)
+		var a = mapOfVariables.get(string)
+		if(null !== mapOfVariables.get(string) && mapOfVariables.get(string).value instanceof Number) {
+			var valueContents = value.toString().split(' ')
+			var contains = false
+			for(v:dependantVariables) {
+				if (valueContents.contains(v)) {
+					contains = true		
+				}
+			}	
+			if (contains) {
+				return '''this.«string» = ko.computed( function() {
+					return «FOR vc:valueContents»«vc.generateContent»«ENDFOR»;
+				}, this);'''
+			} 
+		}
+		return '''this.«string» = ko.observable(«value»);'''
+	}
+	
+	def generateContent(String value) {
+		if(dependantVariables.contains(value))
+			'''parseFloat(this.«value»())'''
+		else 
+			value
+	}
 	
 	def generateCssFiles(Iterable<Css> css) '''
 	«IF css.isEmpty» 
@@ -143,7 +217,7 @@ class WPageGenerator extends AbstractGenerator {
 	def CharSequence generatePageBodyContent(LayoutContent groupedView) '''
 		<div>
 		«IF groupedView instanceof Include»
-			«groupedView.include.getVariable»
+			«groupedView.include.value.getVariable»
 		«ELSEIF groupedView instanceof IfElse» 
 			«(groupedView as IfElse).handleConditionalLayout»
 		«ELSEIF groupedView instanceof GroupedView»
@@ -168,6 +242,16 @@ class WPageGenerator extends AbstractGenerator {
 	</div>
 	'''
 	
+	def dispatch generateAdvancedType(Input input) {
+	'''
+	<div>«IF null !== input.label»
+		«input.label»
+		«ENDIF»
+		<input data-bind="value: «input.variable.value.name»"/>
+	</div>
+	'''
+	}
+	
 	def dispatch generateViewContent(Image image) '''«image.generateImage»'''
 	def dispatch generateViewContent(Text text) '''«text.generateText»'''
 	def dispatch generateViewContent(Editable edit) '''«edit.generateEditable»'''
@@ -179,7 +263,7 @@ class WPageGenerator extends AbstractGenerator {
 	def generateImage(Image image) '''<img src="«image.value»">'''
 	
 	def generateText(Text text) '''
-	<p>«text.value.generateTextValue»</p>
+	<p>«text.simpleVar»</p>
 	'''
 	
 	def generateEditable(Editable editable)'''
@@ -259,13 +343,27 @@ class WPageGenerator extends AbstractGenerator {
 		}  
 	}
 	
+	def CharSequence generateExpression(Expression exp) {
+		switch exp {
+			Add: '''( «exp.left.generateExpression» + «exp.right.generateExpression» )'''
+			Sub: '''( «exp.left.generateExpression» - «exp.right.generateExpression» )'''
+			Mul: '''( «exp.left.generateExpression» * «exp.right.generateExpression» )'''
+			Div: '''( «exp.left.generateExpression» / «exp.right.generateExpression» )'''
+			Number: '''«exp.value.generateExpression»'''
+			Boolean: '''«exp.computeValue»'''
+			Whole: '''«exp.value»'''
+			Decimal:  '''«Double.parseDouble(exp.value)»'''
+			ExpParenthesis: '''( «exp.expression.generateExpression» )'''
+			Name: '''«exp.value.name»'''
+			default: ''''''
+		}
+	}
 	
 	def dispatch double computeExp(Add exp) {
 		exp.left.computeExp + exp.right.computeExp
 	}
 	
 	def dispatch double computeExp(Sub exp) {
-		
 		exp.left.computeExp - exp.right.computeExp
 	}
 	
@@ -328,7 +426,7 @@ class WPageGenerator extends AbstractGenerator {
 	def buttonAction(Action action){
 		val start = "onClick ='"
 		val end = "'"
-		start +	action.pageDirection.directionString+getScriptCall(action.script)+action.alert.getAlert	+end
+		start +	action.pageDirection.directionString+getScriptCall(action.script)+action.alert.getAlert	+ end
 	}
 	
 	def getAlert(Alert alert) {

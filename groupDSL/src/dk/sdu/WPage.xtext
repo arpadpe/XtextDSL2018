@@ -39,11 +39,11 @@ Type:
 ;
 
 Text returns Type: 
-	{Text} 'text' value=TextValue 
+	{Text} 'text' values+=TextValue+ 
 ;
 
 Number returns Type: 
-	{Number} 'number' (value=Whole | value=Decimal)
+	{Number} 'number' value=Exp
 ;
 
 Whole:
@@ -59,15 +59,23 @@ Boolean returns Type:
 ;
 
 AdvancedType: 
-	View | Button | Table 
+	View | Button | Table | Input
+;
+
+Input returns AdvacedType:
+	{Input} 'input' ('label' label=STRING)? 'var' variable=Name ('cons' constraint=Constraint)?
+;
+
+Constraint:
+	 {Constraint} ('number' | 'email' | 'bool' | ('reg' regex=STRING))
 ;
 
 View returns AdvancedType: 
-	{View} 'view' '{' contents+= ViewContent*  '}' 
+	{View} 'view' '{' contents+= ViewContent* '}' 
 ;
 
 Button returns AdvancedType: 
-	{Button} 'button' '{' contents += ButtonContent*  '}'
+	{Button} 'button' '{' contents += ButtonContent* '}'
 ;
 
 DisplayConfiguration:
@@ -119,7 +127,7 @@ ButtonContent:
 ;
 
 Clicker: 
-	{Click} 'click' '->'  click = (IfElse |Action)
+	{Click} 'click' '->' click = (IfElse |Action)
 ;
 
 IfElse: 
@@ -162,12 +170,12 @@ Primitive returns Expression:
 	Name | NumberValue | BooleanValue | Index | ExpParenthesis
 ;
 
-Index returns Index:
+Index:
 	{Index} value = 'current' | value = 'last'
 ;
 
 Name: 
-	name = [Variable]  
+	value = [Variable] 
 ;
 
 NumberValue:
@@ -191,7 +199,7 @@ PageDirection:
 ;
 
 Script: 
-	name=ID '(' ((parameters+=TextValue)','?)*  ')'
+	name=ID '(' ((parameters+=TextValue)','?)* ')'
 ;
 
 Alert: 
@@ -203,7 +211,7 @@ Editable:
 ;
 
 ViewContent: 
-	DisplayConfiguration | Text | Image | Include | Editable  | GroupedView
+	DisplayConfiguration | Text | Image | Include | Editable | GroupedView
 ;
 
 Image: 
@@ -227,13 +235,13 @@ Row:
 ;
 
 Include: 
-  	{Include}	'include' include=[Variable]
+	{Include} 'include' include=Name
 ;
 
 TextValue:
-	{TextValue} string=STRING | variable=[Variable]
+	{TextValue} string=STRING | variable=Name
 ;
 
 @Override
 terminal SL_COMMENT: '#' !('\n'|'\r')* ('\r'? '\n')?;
-terminal FLOAT:  INT'.'INT;
+terminal FLOAT: INT'.'INT;

@@ -36,6 +36,10 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute WPage.ecore#//Decimal/value"/>
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//AdvancedType"/>
+    <genClasses ecoreClass="WPage.ecore#//AdvacedType"/>
+    <genClasses ecoreClass="WPage.ecore#//Constraint">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute WPage.ecore#//Constraint/regex"/>
+    </genClasses>
     <genClasses ecoreClass="WPage.ecore#//DisplayConfiguration"/>
     <genClasses ecoreClass="WPage.ecore#//ViewConfiguration"/>
     <genClasses ecoreClass="WPage.ecore#//DimensionValue">
@@ -65,7 +69,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute WPage.ecore#//Index/value"/>
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//Name">
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference WPage.ecore#//Name/name"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference WPage.ecore#//Name/value"/>
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//NumberValue"/>
     <genClasses ecoreClass="WPage.ecore#//BooleanValue">
@@ -106,20 +110,25 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//Row/contents"/>
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//Include">
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference WPage.ecore#//Include/include"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//Include/include"/>
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//TextValue">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute WPage.ecore#//TextValue/string"/>
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference WPage.ecore#//TextValue/variable"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//TextValue/variable"/>
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//Text">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//Text/value"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//Text/values"/>
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//Number">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//Number/value"/>
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//Boolean">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute WPage.ecore#//Boolean/value"/>
+    </genClasses>
+    <genClasses ecoreClass="WPage.ecore#//Input">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute WPage.ecore#//Input/label"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//Input/variable"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//Input/constraint"/>
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//View">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//View/contents"/>

@@ -3,6 +3,10 @@
  */
 package dk.sdu.validation
 
+import dk.sdu.wPage.Input
+import org.eclipse.xtext.validation.Check
+import dk.sdu.wPage.Type
+import dk.sdu.wPage.WPagePackage
 
 /**
  * This class contains custom validation rules. 
@@ -21,5 +25,19 @@ class WPageValidator extends AbstractWPageValidator {
 //					INVALID_NAME)
 //		}
 //	}
+
+	@Check
+	def checkOnlySimpleTypesForInput(Input input) {
+		if (!(input.variable.value.value instanceof Type)) {
+			error('Input can only be used with simple types', WPagePackage.Literals.INPUT__VARIABLE)
+		}	
+	}
+	
+	@Check
+	def checkBooleans(dk.sdu.wPage.Boolean bool) {
+		if (!('true'.equalsIgnoreCase(bool.value) || 'false'.equalsIgnoreCase(bool.value))) {
+			error('Boolean types can only be "True" or "False"', WPagePackage.Literals.BOOLEAN__VALUE)
+		}
+	}
 	
 }
