@@ -60,9 +60,7 @@ import dk.sdu.wPage.LogParenthesis
 import dk.sdu.wPage.ExpParenthesis
 import dk.sdu.wPage.Input
 import dk.sdu.wPage.Expression
-import dk.sdu.wPage.NumberCons
-import dk.sdu.wPage.EmailCons
-import dk.sdu.wPage.BoolCons
+import java.util.LinkedHashMap
 
 /**
  * Generates code from your model files on save.
@@ -78,8 +76,7 @@ class WPageGenerator extends AbstractGenerator {
 	
 	private var List<String> pageNames = new ArrayList;
 	private val Map<String,Variable> mapOfVariables = new HashMap
-	private val Map<String,CharSequence> inputVariables = new HashMap
-	private val List<String> dependantVariables = new ArrayList
+	private val Map<String,CharSequence> inputVariables = new LinkedHashMap
 	private var int currentIndex = 0;
 	
 	def generateHtmlPageFile(Page page, IFileSystemAccess2 fsa) {
@@ -186,13 +183,12 @@ class WPageGenerator extends AbstractGenerator {
 	'''
 	
 	def generateAddInputVariableToModel(String string) {
-		dependantVariables.add(string)
 		var value = inputVariables.get(string)
 		if(null !== mapOfVariables.get(string) && mapOfVariables.get(string).value instanceof Number) {
 			var valueContents = value.toString().split(' ')
 			var contains = false
-			for(v:dependantVariables) {
-				if (valueContents.contains(v)) {
+			for(v:valueContents) {
+				if (inputVariables.containsKey(v)) {
 					contains = true		
 				}
 			}	
@@ -206,7 +202,7 @@ class WPageGenerator extends AbstractGenerator {
 	}
 	
 	def generateContent(String value) {
-		if(dependantVariables.contains(value))
+		if(inputVariables.containsKey(value))
 			'''parseFloat(this.«value»())'''
 		else 
 			value
@@ -245,20 +241,11 @@ class WPageGenerator extends AbstractGenerator {
 	'''
 	
 	def dispatch generateAdvancedType(Input input) {
-		var constraint = ''
-		val inputCons = input.constraint
-		if(null !== inputCons) {
-			switch inputCons {
-				NumberCons: constraint = '[0-9]+'
-				EmailCons: constraint = '.+@[a-z]+\\.[a-z]+'
-				BoolCons: constraint = '([tT]rue|[fF]alse)'
-			}
-		}
 		return '''
 		<div>«IF null !== input.label»
 			«input.label»
 			«ENDIF»
-			<input data-bind="value: «input.variable.value.name»" «IF '' !== constraint»pattern=\"«constraint»"«ENDIF»/>
+			<input data-bind="value: «input.variable.value.name»" />
 		</div>
 		'''
 	}
@@ -291,7 +278,7 @@ class WPageGenerator extends AbstractGenerator {
 	</button>
 	'''
 	
-	def CharSequence getButtonEvents(Click click) { //Limited to alert and navigation, TODO dispatch
+	def CharSequence getButtonEvents(Click click) { //Limited to alert and navigation
 		if(click.click  instanceof Action ){
 			(click.click as Action).buttonAction 
 		} else if(click.click instanceof IfElse){
@@ -478,7 +465,6 @@ class WPageGenerator extends AbstractGenerator {
 	
 	def dispatch generateViewConfiguration(Style style) '''
 		«FOR s:style.styleDefinitions»
-		«««TODO: fix new lines
 		«switch s {
 			case "bold": "font-weight:bold;"
 			case "italic": "font-style:italic;"
@@ -493,7 +479,6 @@ class WPageGenerator extends AbstractGenerator {
 	
 	def dispatch generateCssConfiguration(CssId cssId) '''id="«cssId.value»"'''
 	
-	//TODO necesary if exists?
 	def dispatch generateAdvancedType(Table table) '''
 		<table «table.contents.filter(DisplayConfiguration).generateDisplayConfiguration»>
 			«IF table.contents.exists[it instanceof Header]»

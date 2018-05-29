@@ -37,7 +37,6 @@
     </genClasses>
     <genClasses ecoreClass="WPage.ecore#//AdvancedType"/>
     <genClasses ecoreClass="WPage.ecore#//AdvacedType"/>
-    <genClasses ecoreClass="WPage.ecore#//Constraint"/>
     <genClasses ecoreClass="WPage.ecore#//DisplayConfiguration"/>
     <genClasses ecoreClass="WPage.ecore#//ViewConfiguration"/>
     <genClasses ecoreClass="WPage.ecore#//DimensionValue">
@@ -126,11 +125,7 @@
     <genClasses ecoreClass="WPage.ecore#//Input">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute WPage.ecore#//Input/label"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//Input/variable"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//Input/constraint"/>
     </genClasses>
-    <genClasses ecoreClass="WPage.ecore#//NumberCons"/>
-    <genClasses ecoreClass="WPage.ecore#//EmailCons"/>
-    <genClasses ecoreClass="WPage.ecore#//BoolCons"/>
     <genClasses ecoreClass="WPage.ecore#//View">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference WPage.ecore#//View/contents"/>
     </genClasses>
