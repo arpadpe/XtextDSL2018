@@ -11,6 +11,7 @@ import org.eclipse.xtext.EcoreUtil2
 import dk.sdu.wPage.Name
 import dk.sdu.wPage.Page
 import dk.sdu.wPage.Variable
+import dk.sdu.wPage.Contents
 
 /**
  * This class contains custom scoping description.
@@ -22,8 +23,11 @@ class WPageScopeProvider extends AbstractWPageScopeProvider {
 
 	override getScope(EObject context, EReference reference) {
 		if (context instanceof Name && reference == Literals.NAME__VALUE) {
-			val container = EcoreUtil2.getContainerOfType(context, Page)
-			val elements = EcoreUtil2.getAllContentsOfType(container, Variable)
+			val pageContainer = EcoreUtil2.getContainerOfType(context, Page)
+			val elements = EcoreUtil2.getAllContentsOfType(pageContainer, Variable)
+			
+			val contentsContainer = EcoreUtil2.getContainerOfType(context, Contents)
+			elements.addAll(EcoreUtil2.getAllContentsOfType(contentsContainer, Variable).filter[it.eContainer.equals(contentsContainer)])
 			
 			return Scopes.scopeFor(elements)
 		}
